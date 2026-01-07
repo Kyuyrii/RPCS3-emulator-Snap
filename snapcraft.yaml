@@ -5,6 +5,9 @@ platforms:
   amd64:
     build-on: [amd64]
     build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
 summary: Open-source Sony PlayStation 3 Emulator
 description: |
   RPCS3 is an experimental open-source Sony PlayStation 3 emulator and debugger written in C++ for Windows and Linux. RPCS3 started development in May of 2011 by its founders DH and Hykem. The emulator is currently capable of running over 2500 commercial titles powered by Vulkan and OpenGL.
@@ -12,11 +15,12 @@ description: |
   The goal of this project is to experiment, research, and educate on the topic of PlayStation 3 emulation that can be performed on compatible devices and operating systems. All information was obtained legally by purchasing PlayStation 3 hardware and software. Additional information was obtained from various sources on the internet that include but is not limited to system hardware and software documentation. Most of this information can be found on the PlayStation 3 Developer Wiki.
 grade: stable
 confinement: strict
+icon: rpcs3.svg
 
 apps:
   rpcs3-emulator:
-    command: usr/games/bin/rpcs3
-    desktop: usr/games/share/applications/rpcs3.desktop
+    command: usr/bin/rpcs3
+    desktop: usr/share/applications/rpcs3.desktop
     common-id: net.rpcs3.RPCS3
     extensions: [kde-neon-6]
     plugs:
@@ -52,6 +56,7 @@ parts:
       - libudev-dev
       - libpulse-dev
       - libgl1-mesa-dev
+      - libduktape207
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DBUILD_LLVM=OFF
@@ -64,26 +69,21 @@ parts:
       - -DUSE_SYSTEM_SDL=ON
       - -DUSE_SYSTEM_ZLIB=ON
       - -Wno-dev
-      - -DCMAKE_INSTALL_PREFIX=/usr/games
+      - -DCMAKE_INSTALL_PREFIX=/usr
     override-build: |
       craftctl default
 
-      sed -i 's|Name=RPCS3|Name=RPCS3 [NyKyu]|' $CRAFT_PART_INSTALL/usr/games/share/applications/rpcs3.desktop
-      sed -i 's|Icon=rpcs3|Icon=${SNAP}/usr/games/share/icons/hicolor/scalable/apps/rpcs3.svg|' $CRAFT_PART_INSTALL/usr/games/share/applications/rpcs3.desktop
-      sed -i 's|TryExec=rpcs3|TryExec=${SNAP}/usr/games/bin/rpcs3|' $CRAFT_PART_INSTALL/usr/games/share/applications/rpcs3.desktop
-      sed -i 's|Exec=rpcs3 %f|Exec=${SNAP}/usr/games/bin/rpcs3 %f|' $CRAFT_PART_INSTALL/usr/games/share/applications/rpcs3.desktop
+      sed -i 's|Name=RPCS3|Name=RPCS3 [NyKyu]|' $CRAFT_PART_INSTALL/usr/share/applications/rpcs3.desktop
 
       craftctl set version=$(date +%Y-%m-%d)
 
   sdl3:
     plugin: cmake
     source: https://github.com/libsdl-org/SDL.git
-    source-tag: release-3.2.20
+    source-tag: release-3.4.0
     build-packages:
       - libdrm-dev
+      - libxkbcommon-dev
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr
-      - -DCMAKE_BUILD_TYPE=None
-      - -DSDL_HIDAPI_LIBUSB=ON
-      - -DSDL_STATIC=OFF
-      - -DSDL_RPATH=OFF
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
