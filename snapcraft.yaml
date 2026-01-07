@@ -23,6 +23,8 @@ apps:
     command: usr/bin/rpcs3
     desktop: usr/share/applications/rpcs3.desktop
     common-id: net.rpcs3.RPCS3
+    environment:
+      QT_QPA_PLATFORMTHEME: xdgdesktopportal
     extensions: [kde-neon-6]
     plugs:
       - unity7
