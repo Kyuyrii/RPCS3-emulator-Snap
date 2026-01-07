@@ -19,6 +19,7 @@ icon: rpcs3.svg
 
 apps:
   rpcs3-emulator:
+    command-chain: [snap/command-chain/desktop-launch-rpcs3]
     command: usr/bin/rpcs3
     desktop: usr/share/applications/rpcs3.desktop
     common-id: net.rpcs3.RPCS3
@@ -87,3 +88,9 @@ parts:
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+  command-chain:
+    plugin: dump
+    source: ./command-chain/
+    organize:
+      desktop-launch-rpcs3: snap/command-chain/desktop-launch-rpcs3
