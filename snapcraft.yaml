@@ -19,7 +19,7 @@ icon: rpcs3.svg
 
 apps:
   rpcs3-emulator:
-    command-chain: [snap/command-chain/desktop-launch-rpcs3]
+    command-chain: [snap/command-chain/override-xdg-paths]
     command: usr/bin/rpcs3
     desktop: usr/share/applications/rpcs3.desktop
     common-id: net.rpcs3.RPCS3
@@ -76,7 +76,7 @@ parts:
     override-build: |
       craftctl default
 
-      sed -i 's|Name=RPCS3|Name=RPCS3 [NyKyu]|' $CRAFT_PART_INSTALL/usr/share/applications/rpcs3.desktop
+      sed -i 's|Name=RPCS3|Name=RPCS3 [Kyu]|' $CRAFT_PART_INSTALL/usr/share/applications/rpcs3.desktop
 
       craftctl set version=$(date +%Y-%m-%d)
 
@@ -95,4 +95,4 @@ parts:
     plugin: dump
     source: ./command-chain/
     organize:
-      desktop-launch-rpcs3: snap/command-chain/desktop-launch-rpcs3
+      override-xdg-paths: snap/command-chain/override-xdg-paths
