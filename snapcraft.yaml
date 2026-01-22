@@ -1,6 +1,6 @@
 name: rpcs3-emulator
 base: core24
-adopt-info: rpcs3
+adopt-info: rpcs3-app
 platforms:
   amd64:
     build-on: [amd64]
@@ -10,9 +10,12 @@ platforms:
     build-for: [arm64]
 summary: Open-source Sony PlayStation 3 Emulator
 description: |
-  RPCS3 is an experimental open-source Sony PlayStation 3 emulator and debugger written in C++ for Windows and Linux. RPCS3 started development in May of 2011 by its founders DH and Hykem. The emulator is currently capable of running over 2500 commercial titles powered by Vulkan and OpenGL.
-
-  The goal of this project is to experiment, research, and educate on the topic of PlayStation 3 emulation that can be performed on compatible devices and operating systems. All information was obtained legally by purchasing PlayStation 3 hardware and software. Additional information was obtained from various sources on the internet that include but is not limited to system hardware and software documentation. Most of this information can be found on the PlayStation 3 Developer Wiki.
+  RPCS3 is an experimental open-source Sony PlayStation 3 emulator and debugger written in C++ for Windows and Linux.
+  RPCS3 started development in May of 2011 by its founders DH and Hykem.
+  The emulator is currently capable of running over 2500 commercial titles powered by Vulkan and OpenGL.
+  The goal of this project is to experiment, research, and educate on the topic of PlayStation 3 emulation that can be performed on compatible devices and operating systems.
+  All information was obtained legally by purchasing PlayStation 3 hardware and software. Additional information was obtained from various sources on the internet that include but is not limited to system hardware and software documentation.
+  Most of this information can be found on the PlayStation 3 Developer Wiki.
 grade: stable
 confinement: strict
 icon: rpcs3.svg
@@ -25,7 +28,7 @@ apps:
     common-id: net.rpcs3.RPCS3
     environment:
       QT_QPA_PLATFORMTHEME: xdgdesktopportal
-    extensions: [kde-neon-6]
+    extensions: [gnome]
     plugs:
       - unity7
       - screen-inhibit-control
@@ -45,53 +48,30 @@ plugs:
     private: true
 
 parts:
-  rpcs3:
-    after: [sdl3]
-    plugin: cmake
-    source: https://github.com/RPCS3/rpcs3.git
-    build-packages:
-      - libpng-dev
-      - libvulkan-dev
-      - libopenal-dev
-      - libglew-dev
-      - libcurl4-gnutls-dev
-      - libevdev-dev
-      - libudev-dev
-      - libpulse-dev
-      - libgl1-mesa-dev
-      - libduktape207
-    cmake-parameters:
-      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
-      - -DBUILD_LLVM=OFF
-      - -DUSE_NATIVE_INSTRUCTIONS=OFF
-      - -DUSE_PRECOMPILED_HEADERS=OFF
-      - -DUSE_SDL=ON
-      - -DUSE_SYSTEM_CURL=ON
-      - -DUSE_SYSTEM_FFMPEG=ON
-      - -DUSE_SYSTEM_LIBPNG=ON
-      - -DUSE_SYSTEM_SDL=ON
-      - -DUSE_SYSTEM_ZLIB=ON
-      - -Wno-dev
-      - -DCMAKE_INSTALL_PREFIX=/usr
+  rpcs3-app:
+    plugin: nil
+    build-packages: [wget, curl]
     override-build: |
-      craftctl default
+      if [ "$CRAFT_ARCH_TRIPLET_BUILD_FOR" = "x86_64-linux-gnu" ]; then
+        URL=$(curl -s "https://api.github.com/repos/RPCS3/rpcs3-binaries-linux/releases/latest" | grep -o 'https.*linux64\.AppImage' | head -1)
+        wget "$URL"
+      elif [ "$CRAFT_ARCH_TRIPLET_BUILD_FOR" = "aarch64-linux-gnu" ]; then
+        URL=$(curl -s "https://api.github.com/repos/RPCS3/rpcs3-binaries-linux-arm64/releases/latest" | grep -o 'https.*linux_aarch64\.AppImage' | head -1)
+        wget "$URL"
+      fi
+      
+      APPIMAGE_FILE=$(basename "$URL")
+      chmod +x "$APPIMAGE_FILE"
+      ./"$APPIMAGE_FILE" --appimage-extract
+      mv -f AppDir/usr $CRAFT_PART_INSTALL/usr
 
-      sed -i 's|Name=RPCS3|Name=RPCS3 [Kyu]|' $CRAFT_PART_INSTALL/usr/share/applications/rpcs3.desktop
-
-      craftctl set version=$(date +%Y-%m-%d)
-
-  sdl3:
-    plugin: cmake
-    source: https://github.com/libsdl-org/SDL.git
-    source-tag: release-3.4.0
-    build-packages:
-      - libdrm-dev
-      - libxkbcommon-dev
-    cmake-parameters:
-      - -DCMAKE_INSTALL_PREFIX=/usr
-      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      VERSION=$(echo "$APPIMAGE_FILE" | sed -n 's/.*rpcs3-v\([0-9.]*\)-\([0-9]*\)-.*/\1-\2/p')
+      craftctl set version="$VERSION"
+    prime:
+      - usr
 
   command-chain:
+    after: [rpcs3-app]
     plugin: dump
     source: ./command-chain/
     organize:
